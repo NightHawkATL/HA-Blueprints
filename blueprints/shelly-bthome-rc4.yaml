@@ -107,7 +107,7 @@ blueprint:
       default: []
       selector:
         action: {}
-  source_url: 
+  source_url: https://github.com/NightHawkATL/HA-Blueprints/blob/main/blueprints/shelly-bthome-rc4.yaml
 trigger:
 - platform: event
   event_type: bthome_ble_event
