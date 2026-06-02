@@ -1,0 +1,111 @@
+blueprint:
+  name: Third Reality Smart Button S3 (Z2M)
+  description: Automate actions for all 3 buttons on the Third Reality S3 using Zigbee2MQTT.
+  domain: automation
+  input:
+    button_entity:
+      name: Button Entity
+      description: "Select the Action sensor for your S3 button. (Note: Ensure 'Legacy triggers' is enabled in Z2M!)"
+      selector:
+        entity:
+          filter:
+            - domain: event
+            - domain: sensor
+    b1_single:
+      name: Button 1 - Single Press
+      default: []
+      selector: { action: {} }
+    b1_double:
+      name: Button 1 - Double Press
+      default: []
+      selector: { action: {} }
+    b1_hold:
+      name: Button 1 - Hold
+      default: []
+      selector: { action: {} }
+    b1_release:
+      name: Button 1 - Release
+      default: []
+      selector: { action: {} }
+      
+    b2_single:
+      name: Button 2 - Single Press
+      default: []
+      selector: { action: {} }
+    b2_double:
+      name: Button 2 - Double Press
+      default: []
+      selector: { action: {} }
+    b2_hold:
+      name: Button 2 - Hold
+      default: []
+      selector: { action: {} }
+    b2_release:
+      name: Button 2 - Release
+      default: []
+      selector: { action: {} }
+
+    b3_single:
+      name: Button 3 - Single Press
+      default: []
+      selector: { action: {} }
+    b3_double:
+      name: Button 3 - Double Press
+      default: []
+      selector: { action: {} }
+    b3_hold:
+      name: Button 3 - Hold
+      default: []
+      selector: { action: {} }
+    b3_release:
+      name: Button 3 - Release
+      default: []
+      selector: { action: {} }
+
+mode: restart
+max_exceeded: silent
+
+trigger:
+  - platform: state
+    entity_id: !input button_entity
+    not_from:
+      - "unavailable"
+      - "unknown"
+      - ""
+
+action:
+  - variables:
+      action_type: >
+        {% if trigger.to_state.domain == 'event' %}
+          {{ trigger.to_state.attributes.event_type }}
+        {% else %}
+          {{ trigger.to_state.state }}
+        {% endif %}
+    
+  - choose:
+      - conditions: ["{{ action_type == 'single_1' }}"]
+        sequence: !input b1_single
+      - conditions: ["{{ action_type == 'double_1' }}"]
+        sequence: !input b1_double
+      - conditions: ["{{ action_type == 'hold_1' }}"]
+        sequence: !input b1_hold
+      - conditions: ["{{ action_type == 'release_1' }}"]
+        sequence: !input b1_release
+
+      - conditions: ["{{ action_type == 'single_2' }}"]
+        sequence: !input b2_single
+      - conditions: ["{{ action_type == 'double_2' }}"]
+        sequence: !input b2_double
+      - conditions: ["{{ action_type == 'hold_2' }}"]
+        sequence: !input b2_hold
+      - conditions: ["{{ action_type == 'release_2' }}"]
+        sequence: !input b2_release
+
+      - conditions: ["{{ action_type == 'single_3' }}"]
+        sequence: !input b3_single
+      - conditions: ["{{ action_type == 'double_3' }}"]
+        sequence: !input b3_double
+      - conditions: ["{{ action_type == 'hold_3' }}"]
+        sequence: !input b3_hold
+      - conditions: ["{{ action_type == 'release_3' }}"]
+        sequence: !input b3_release
