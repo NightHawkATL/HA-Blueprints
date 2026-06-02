@@ -62,7 +62,7 @@ blueprint:
       default: []
       selector: { action: {} }
 
-# Changed to parallel so simultaneous presses/delays don't cancel each other out
+# Parallel mode allows multiple presses/delays simultaneously
 mode: parallel
 max: 10
 max_exceeded: silent
@@ -73,41 +73,61 @@ trigger:
 
 action:
   - variables:
-      action_type: >
-        {% if trigger.to_state.domain == 'event' %}
-          {{ trigger.to_state.attributes.event_type }}
-        {% else %}
-          {{ trigger.to_state.state }}
-        {% endif %}
+      # Single-line template guarantees no hidden spaces or newlines break our conditions
+      action_type: "{{ trigger.to_state.attributes.event_type if trigger.to_state.domain == 'event' else trigger.to_state.state }}"
         
   # Filter out "clearing" events and unavailability so they don't trigger blank actions
   - condition: template
     value_template: "{{ action_type not in ['unknown', 'unavailable', '', 'None'] }}"
     
   - choose:
-      - conditions: ["{{ action_type == 'single_1' }}"]
+      - conditions:
+          - condition: template
+            value_template: "{{ action_type == 'single_1' }}"
         sequence: !input b1_single
-      - conditions: ["{{ action_type == 'double_1' }}"]
+      - conditions:
+          - condition: template
+            value_template: "{{ action_type == 'double_1' }}"
         sequence: !input b1_double
-      - conditions: ["{{ action_type == 'hold_1' }}"]
+      - conditions:
+          - condition: template
+            value_template: "{{ action_type == 'hold_1' }}"
         sequence: !input b1_hold
-      - conditions: ["{{ action_type == 'release_1' }}"]
+      - conditions:
+          - condition: template
+            value_template: "{{ action_type == 'release_1' }}"
         sequence: !input b1_release
 
-      - conditions: ["{{ action_type == 'single_2' }}"]
+      - conditions:
+          - condition: template
+            value_template: "{{ action_type == 'single_2' }}"
         sequence: !input b2_single
-      - conditions: ["{{ action_type == 'double_2' }}"]
+      - conditions:
+          - condition: template
+            value_template: "{{ action_type == 'double_2' }}"
         sequence: !input b2_double
-      - conditions: ["{{ action_type == 'hold_2' }}"]
+      - conditions:
+          - condition: template
+            value_template: "{{ action_type == 'hold_2' }}"
         sequence: !input b2_hold
-      - conditions: ["{{ action_type == 'release_2' }}"]
+      - conditions:
+          - condition: template
+            value_template: "{{ action_type == 'release_2' }}"
         sequence: !input b2_release
 
-      - conditions: ["{{ action_type == 'single_3' }}"]
+      - conditions:
+          - condition: template
+            value_template: "{{ action_type == 'single_3' }}"
         sequence: !input b3_single
-      - conditions: ["{{ action_type == 'double_3' }}"]
+      - conditions:
+          - condition: template
+            value_template: "{{ action_type == 'double_3' }}"
         sequence: !input b3_double
-      - conditions: ["{{ action_type == 'hold_3' }}"]
+      - conditions:
+          - condition: template
+            value_template: "{{ action_type == 'hold_3' }}"
         sequence: !input b3_hold
-      - conditions: ["{{ action_type == 'release_3' }}"]
+      - conditions:
+          - condition: template
+            value_template: "{{ action_type == 'release_3' }}"
         sequence: !input b3_release
