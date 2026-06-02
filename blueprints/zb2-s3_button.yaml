@@ -12,57 +12,56 @@ blueprint:
             - domain: event
             - domain: sensor
     b1_single:
-      name: Button 1 - Single Press
+      name: Button 1 (Top) - Single Press
       default: []
       selector: { action: {} }
     b1_double:
-      name: Button 1 - Double Press
+      name: Button 1 (Top) - Double Press
       default: []
       selector: { action: {} }
     b1_hold:
-      name: Button 1 - Hold
+      name: Button 1 (Top) - Hold
       default: []
       selector: { action: {} }
     b1_release:
-      name: Button 1 - Release
+      name: Button 1 (Top) - Release
       default: []
       selector: { action: {} }
       
     b2_single:
-      name: Button 2 - Single Press
+      name: Button 2 (Middle) - Single Press
       default: []
       selector: { action: {} }
     b2_double:
-      name: Button 2 - Double Press
+      name: Button 2 (Middle) - Double Press
       default: []
       selector: { action: {} }
     b2_hold:
-      name: Button 2 - Hold
+      name: Button 2 (Middle) - Hold
       default: []
       selector: { action: {} }
     b2_release:
-      name: Button 2 - Release
+      name: Button 2 (Middle) - Release
       default: []
       selector: { action: {} }
 
     b3_single:
-      name: Button 3 - Single Press
+      name: Button 3 (Bottom) - Single Press
       default: []
       selector: { action: {} }
     b3_double:
-      name: Button 3 - Double Press
+      name: Button 3 (Bottom) - Double Press
       default: []
       selector: { action: {} }
     b3_hold:
-      name: Button 3 - Hold
+      name: Button 3 (Bottom) - Hold
       default: []
       selector: { action: {} }
     b3_release:
-      name: Button 3 - Release
+      name: Button 3 (Bottom) - Release
       default: []
       selector: { action: {} }
 
-# Parallel mode allows multiple presses/delays simultaneously
 mode: parallel
 max: 10
 max_exceeded: silent
@@ -73,61 +72,65 @@ trigger:
 
 action:
   - variables:
-      # Single-line template guarantees no hidden spaces or newlines break our conditions
-      action_type: "{{ trigger.to_state.attributes.event_type if trigger.to_state.domain == 'event' else trigger.to_state.state }}"
+      # Grab the raw action and format it strictly (lowercase, no spaces)
+      raw_action: "{{ trigger.to_state.attributes.event_type if trigger.to_state.domain == 'event' else trigger.to_state.state }}"
+      action_type: "{{ raw_action | string | lower | trim }}"
         
-  # Filter out "clearing" events and unavailability so they don't trigger blank actions
+  # Stop the automation immediately if the state is just Z2M clearing itself
   - condition: template
-    value_template: "{{ action_type not in ['unknown', 'unavailable', '', 'None'] }}"
+    value_template: "{{ action_type not in ['unknown', 'unavailable', '', 'none'] }}"
     
   - choose:
+      # BUTTON 1
       - conditions:
           - condition: template
-            value_template: "{{ action_type == 'single_1' }}"
+            value_template: "{{ action_type in ['single_1', 'single', '1_single'] }}"
         sequence: !input b1_single
       - conditions:
           - condition: template
-            value_template: "{{ action_type == 'double_1' }}"
+            value_template: "{{ action_type in ['double_1', 'double', '1_double'] }}"
         sequence: !input b1_double
       - conditions:
           - condition: template
-            value_template: "{{ action_type == 'hold_1' }}"
+            value_template: "{{ action_type in ['hold_1', 'hold', '1_hold'] }}"
         sequence: !input b1_hold
       - conditions:
           - condition: template
-            value_template: "{{ action_type == 'release_1' }}"
+            value_template: "{{ action_type in ['release_1', 'release', '1_release'] }}"
         sequence: !input b1_release
 
+      # BUTTON 2
       - conditions:
           - condition: template
-            value_template: "{{ action_type == 'single_2' }}"
+            value_template: "{{ action_type in ['single_2', '2_single'] }}"
         sequence: !input b2_single
       - conditions:
           - condition: template
-            value_template: "{{ action_type == 'double_2' }}"
+            value_template: "{{ action_type in ['double_2', '2_double'] }}"
         sequence: !input b2_double
       - conditions:
           - condition: template
-            value_template: "{{ action_type == 'hold_2' }}"
+            value_template: "{{ action_type in ['hold_2', '2_hold'] }}"
         sequence: !input b2_hold
       - conditions:
           - condition: template
-            value_template: "{{ action_type == 'release_2' }}"
+            value_template: "{{ action_type in ['release_2', '2_release'] }}"
         sequence: !input b2_release
 
+      # BUTTON 3
       - conditions:
           - condition: template
-            value_template: "{{ action_type == 'single_3' }}"
+            value_template: "{{ action_type in ['single_3', '3_single'] }}"
         sequence: !input b3_single
       - conditions:
           - condition: template
-            value_template: "{{ action_type == 'double_3' }}"
+            value_template: "{{ action_type in ['double_3', '3_double'] }}"
         sequence: !input b3_double
       - conditions:
           - condition: template
-            value_template: "{{ action_type == 'hold_3' }}"
+            value_template: "{{ action_type in ['hold_3', '3_hold'] }}"
         sequence: !input b3_hold
       - conditions:
           - condition: template
-            value_template: "{{ action_type == 'release_3' }}"
+            value_template: "{{ action_type in ['release_3', '3_release'] }}"
         sequence: !input b3_release
