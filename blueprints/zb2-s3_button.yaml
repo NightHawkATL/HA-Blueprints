@@ -5,7 +5,7 @@ blueprint:
   input:
     button_entity:
       name: Button Entity
-      description: "Select the Action sensor for your S3 button. (Note: Ensure 'Legacy triggers' is enabled in Z2M!)"
+      description: "Select the Action sensor for your S3 button."
       selector:
         entity:
           filter:
@@ -62,16 +62,14 @@ blueprint:
       default: []
       selector: { action: {} }
 
-mode: restart
+# Changed to parallel so simultaneous presses/delays don't cancel each other out
+mode: parallel
+max: 10
 max_exceeded: silent
 
 trigger:
   - platform: state
     entity_id: !input button_entity
-    not_from:
-      - "unavailable"
-      - "unknown"
-      - ""
 
 action:
   - variables:
@@ -81,6 +79,10 @@ action:
         {% else %}
           {{ trigger.to_state.state }}
         {% endif %}
+        
+  # Filter out "clearing" events and unavailability so they don't trigger blank actions
+  - condition: template
+    value_template: "{{ action_type not in ['unknown', 'unavailable', '', 'None'] }}"
     
   - choose:
       - conditions: ["{{ action_type == 'single_1' }}"]
