@@ -1,0 +1,190 @@
+blueprint:
+  name: Shelly BLU Remote Control ZB SBRC-005B
+  description: >
+    Automate 4-channel light control using Shelly SBRC-005B. 
+    Button 1 turns lights On, Button 2 turns lights Off. The roller dims up (rotate left) and dims down (rotate right). 
+    
+    Make sure to select the Channel sensor for the remote so the automation knows which channel is active!
+  domain: automation
+  input:
+    button_device:
+      name: Shelly BLU RC-4
+      description: Select the Shelly BLU RC-4 remote device.
+      selector:
+        device:
+          integration: bthome
+          multiple: false
+    channel_sensor:
+      name: Remote Channel Sensor
+      description: Select the 'Channel' sensor entity for this remote (e.g. sensor.bthome_sensor_channel).
+      selector:
+        entity:
+          domain: sensor
+    channel_1_target:
+      name: Channel 1 Target (Sensor = 0)
+      description: Target light or light group for Channel 1.
+      default: {}
+      selector:
+        target:
+          entity:
+            domain: light
+    channel_2_target:
+      name: Channel 2 Target (Sensor = 1)
+      description: Target light or light group for Channel 2.
+      default: {}
+      selector:
+        target:
+          entity:
+            domain: light
+    channel_3_target:
+      name: Channel 3 Target (Sensor = 2)
+      description: Target light or light group for Channel 3.
+      default: {}
+      selector:
+        target:
+          entity:
+            domain: light
+    channel_4_target:
+      name: Channel 4 Target (Sensor = 3)
+      description: Target light or light group for Channel 4.
+      default: {}
+      selector:
+        target:
+          entity:
+            domain: light
+    dim_step:
+      name: Dimming Step %
+      description: The percentage of brightness to change per single roller "step".
+      default: 5
+      selector:
+        number:
+          min: 1
+          max: 25
+          mode: slider
+          unit_of_measurement: "%"
+trigger:
+  - platform: event
+    event_type: bthome_ble_event
+    event_data:
+      device_id: !input button_device
+variables:
+  channel_sensor: !input channel_sensor
+  # Retrieves the current channel from the sensor. Defaults to -1 if unavailable.
+  current_channel: "{{ states(channel_sensor) | int(-1) }}"
+  dim_step: !input dim_step
+  event_class: "{{ trigger.event.data.event_class }}"
+  event_type: "{{ trigger.event.data.event_type }}"
+  # Grabs the "steps" payload (e.g. 19 steps in a fast swipe) to calculate smooth dimming jumps
+  steps: "{{ trigger.event.data.event_properties.steps | default(1) | int }}"
+  dim_up_val: "{{ steps * dim_step }}"
+  dim_down_val: "{{ -(steps * dim_step) }}"
+action:
+  - choose:
+      # BUTTON 1 -> TURN ON
+      - conditions:
+          - condition: template
+            value_template: "{{ event_class == 'button_1' and event_type == 'press' }}"
+        sequence:
+          - choose:
+              - conditions: "{{ current_channel == 0 }}"
+                sequence:
+                  - service: light.turn_on
+                    target: !input channel_1_target
+              - conditions: "{{ current_channel == 1 }}"
+                sequence:
+                  - service: light.turn_on
+                    target: !input channel_2_target
+              - conditions: "{{ current_channel == 2 }}"
+                sequence:
+                  - service: light.turn_on
+                    target: !input channel_3_target
+              - conditions: "{{ current_channel == 3 }}"
+                sequence:
+                  - service: light.turn_on
+                    target: !input channel_4_target
+
+      # BUTTON 2 -> TURN OFF
+      - conditions:
+          - condition: template
+            value_template: "{{ event_class == 'button_2' and event_type == 'press' }}"
+        sequence:
+          - choose:
+              - conditions: "{{ current_channel == 0 }}"
+                sequence:
+                  - service: light.turn_off
+                    target: !input channel_1_target
+              - conditions: "{{ current_channel == 1 }}"
+                sequence:
+                  - service: light.turn_off
+                    target: !input channel_2_target
+              - conditions: "{{ current_channel == 2 }}"
+                sequence:
+                  - service: light.turn_off
+                    target: !input channel_3_target
+              - conditions: "{{ current_channel == 3 }}"
+                sequence:
+                  - service: light.turn_off
+                    target: !input channel_4_target
+
+      # DIMMER ROTATE LEFT -> DIM UP (Based on user request)
+      - conditions:
+          - condition: template
+            value_template: "{{ event_class == 'dimmer' and event_type == 'rotate_left' }}"
+        sequence:
+          - choose:
+              - conditions: "{{ current_channel == 0 }}"
+                sequence:
+                  - service: light.turn_on
+                    target: !input channel_1_target
+                    data:
+                      brightness_step_pct: "{{ dim_up_val }}"
+              - conditions: "{{ current_channel == 1 }}"
+                sequence:
+                  - service: light.turn_on
+                    target: !input channel_2_target
+                    data:
+                      brightness_step_pct: "{{ dim_up_val }}"
+              - conditions: "{{ current_channel == 2 }}"
+                sequence:
+                  - service: light.turn_on
+                    target: !input channel_3_target
+                    data:
+                      brightness_step_pct: "{{ dim_up_val }}"
+              - conditions: "{{ current_channel == 3 }}"
+                sequence:
+                  - service: light.turn_on
+                    target: !input channel_4_target
+                    data:
+                      brightness_step_pct: "{{ dim_up_val }}"
+
+      # DIMMER ROTATE RIGHT -> DIM DOWN (Based on user request)
+      - conditions:
+          - condition: template
+            value_template: "{{ event_class == 'dimmer' and event_type == 'rotate_right' }}"
+        sequence:
+          - choose:
+              - conditions: "{{ current_channel == 0 }}"
+                sequence:
+                  - service: light.turn_on
+                    target: !input channel_1_target
+                    data:
+                      brightness_step_pct: "{{ dim_down_val }}"
+              - conditions: "{{ current_channel == 1 }}"
+                sequence:
+                  - service: light.turn_on
+                    target: !input channel_2_target
+                    data:
+                      brightness_step_pct: "{{ dim_down_val }}"
+              - conditions: "{{ current_channel == 2 }}"
+                sequence:
+                  - service: light.turn_on
+                    target: !input channel_3_target
+                    data:
+                      brightness_step_pct: "{{ dim_down_val }}"
+              - conditions: "{{ current_channel == 3 }}"
+                sequence:
+                  - service: light.turn_on
+                    target: !input channel_4_target
+                    data:
+                      brightness_step_pct: "{{ dim_down_val }}"
+mode: single
