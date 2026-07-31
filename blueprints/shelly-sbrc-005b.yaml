@@ -8,8 +8,8 @@ blueprint:
   domain: automation
   input:
     button_device:
-      name: Shelly BLU RC-4
-      description: Select the Shelly BLU RC-4 remote device.
+      name: Shelly BLU Remote Control ZB
+      description: Select the Shelly BLU Remote Control ZB remote device.
       selector:
         device:
           integration: bthome
